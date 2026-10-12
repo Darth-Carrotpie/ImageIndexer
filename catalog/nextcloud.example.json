@@ -1,0 +1,5 @@
+{
+  "password_env": "IIP_NEXTCLOUD_PASSWORD",
+  "share_token": "",
+  "webdav_base_url": ""
+}

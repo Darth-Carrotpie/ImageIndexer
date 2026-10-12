@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "description": {"type": "string"},
+    "keywords": {"type": "array", "items": {"type": "string"}},
+    "subjects": {"type": "array", "items": {"type": "string"}},
+    "materials": {"type": "array", "items": {"type": "string"}},
+    "colors": {"type": "array", "items": {"type": "string"}},
+    "action": {"type": ["string", "null"]},
+    "effects": {"type": "array", "items": {"type": "string"}},
+    "symbols": {"type": "array", "items": {"type": "string"}},
+    "visible_text": {"type": ["string", "null"]},
+    "state": {"type": ["string", "null"]},
+    "composition": {"type": "string"},
+    "inferred_uses": {"type": "array", "items": {"type": "string"}},
+    "same_motif_across_renditions": {
+      "type": "string",
+      "enum": ["yes", "no", "uncertain", "not_applicable"]
+    },
+    "uncertainties": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["description", "keywords", "subjects", "materials", "colors", "action", "effects", "symbols", "visible_text", "state", "composition", "inferred_uses", "same_motif_across_renditions", "uncertainties"]
+}

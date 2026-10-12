@@ -1,0 +1,5 @@
+Inspect the supplied icon preview image or images. The gray checkerboard is only a transparency preview background, not part of the icon. Do not infer visible content from filenames, collection names, or an intended game role.
+
+Return one JSON object matching the supplied schema. Describe the first image in one literal sentence, and give 4-8 specific, visually supported search keywords. Record visible subjects, materials, colors, action, effects, symbols, text, state, and composition. Use an empty list or null when a feature is absent. Put possible UI uses only in inferred_uses; never present a use as a visible fact.
+
+If there are two images, compare their visible motifs. Set same_motif_across_renditions to yes, no, or uncertain, and explain any mismatch or uncertainty in uncertainties. If there is one image, set it to not_applicable. Do not invent unreadable text, materials, or hidden details.

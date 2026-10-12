@@ -1,0 +1,4 @@
+# Immutable release payloads must survive checkout byte-for-byte (including Windows).
+catalog/release/** -text -filter
+catalog/distribution.json -text -filter
+catalog/observations.jsonl text eol=lf

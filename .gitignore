@@ -1,0 +1,28 @@
+/work/
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+*.zip
+*.sqlite*
+!/catalog/release/*/catalog.sqlite
+download-cache/
+nextcloud.json
+
+# Generated catalog / installer directories
+/assets/
+/thumbnails/
+/release/
+/releases/
+/bootstrap/
+
+# Download state and local logs
+.download.lock
+*.part
+*.log
+
+# Private pixels restored into the public metadata snapshot
+/catalog/release/*/assets/
+/catalog/release/*/thumbnails/

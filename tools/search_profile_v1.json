@@ -1,0 +1,65 @@
+{
+  "alias_map": {
+    "color": {
+      "gray": ["grey"],
+      "gold": ["golden"]
+    },
+    "effect": {
+      "fire": ["flame", "flaming"],
+      "ice": ["frost", "icy"]
+    }
+  },
+  "bm25_weights": {
+    "action": 1.1,
+    "collection": 0.9,
+    "color": 1.05,
+    "composition": 0.8,
+    "description": 1.0,
+    "effect": 1.1,
+    "icon_id": 0.0,
+    "inferred_use": 0.8,
+    "keywords": 1.1,
+    "material": 1.05,
+    "state": 1.1,
+    "subject": 1.1,
+    "symbol": 1.1,
+    "title": 0.9,
+    "visible_text": 1.1
+  },
+  "fts_columns": [
+    "icon_id",
+    "subject",
+    "action",
+    "state",
+    "effect",
+    "symbol",
+    "color",
+    "material",
+    "visible_text",
+    "keywords",
+    "description",
+    "inferred_use",
+    "composition",
+    "title",
+    "collection"
+  ],
+  "profile_id": "search-v1",
+  "profile_schema_version": 1,
+  "request_limits": {
+    "excluded_ids": 6250,
+    "fts_expression_chars": 1024,
+    "fts_expression_tokens": 128,
+    "require_values": 64,
+    "text_chars": 1024,
+    "text_terms": 64
+  },
+  "rrf_rank_constant": 60,
+  "schema_version": 2,
+  "seed": {
+    "columns": ["subject", "action", "effect", "symbol", "state", "material", "color", "keywords"],
+    "generic_terms": ["background", "dark", "fantasi", "glow", "icon", "light", "object"],
+    "max_document_frequency_ratio": 0.4,
+    "max_terms": 12
+  },
+  "tokenizer": "porter unicode61 remove_diacritics 2"
+}
