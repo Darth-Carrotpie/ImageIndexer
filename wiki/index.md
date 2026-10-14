@@ -20,7 +20,7 @@ Implemented stack, runtime contracts and stable references.
 
 | Article | Summary | Updated |
 |---|---|---|
-| [Stack and contracts](architecture/stack-and-contracts.md) | Runtime versus build dependencies, search semantics, identities and deployment. | 2026-10-12 |
+| [Stack and contracts](architecture/stack-and-contracts.md) | Runtime and build dependencies, search identities, local update and deployment pointers. | 2026-10-14 |
 
 ## Quality
 
@@ -36,8 +36,8 @@ Public code and generated index, private image transport and owner release steps
 
 | Article | Summary | Updated |
 |---|---|---|
-| [Distribution and repository](delivery/distribution-and-repository.md) | Public data in ordinary Git, guided consumer installation and owner publication steps. | 2026-10-14 |
-| [Nextcloud installation](delivery/nextcloud-installation.md) | One-command setup, private credentials, resumable verification and recovery limits. | 2026-10-14 |
+| [Distribution and repository](delivery/distribution-and-repository.md) | Public data in ordinary Git, guided update and rollback, and owner release steps. | 2026-10-14 |
+| [Nextcloud installation](delivery/nextcloud-installation.md) | Guided setup and update, private credentials, verification and recovery limits. | 2026-10-14 |
 
 ## Planning
 
@@ -45,6 +45,6 @@ Concrete next steps; these pages do not claim future commands are implemented.
 
 | Article | Summary | Updated |
 |---|---|---|
-| [Implementation roadmap](planning/implementation-roadmap.md) | Guided installer prepared; remaining installer push, private-cloud proof and field-feedback gates. | 2026-10-14 |
+| [Implementation roadmap](planning/implementation-roadmap.md) | Live install verified; remaining updater push, promotion proof and field-feedback gates. | 2026-10-14 |
 | [Additional-package ingestion](planning/package-ingestion.md) | Append-only new-pack path, multi-pack assumptions, annotation reuse and successor publication. | 2026-10-12 |
 

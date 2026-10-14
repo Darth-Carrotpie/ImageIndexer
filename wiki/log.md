@@ -65,3 +65,19 @@
 - Evidence: 0 evidence errors and 0 unreferenced raw files. The existing 16443 fidelity candidate was confirmed in the linked restore JSON; the checker excludes fenced source blocks.
 - Verification: Final automated suite passes 61 tests; publication guard, Bash syntax and Git whitespace checks pass. Existing raw sources and immutable catalog payloads were not rewritten.
 
+## [2026-10-14] ingest | Live Nextcloud installation and local updater
+
+- Disposition: Update
+- Raw: raw/delivery/2026-10-14-live-install-and-update-direction.md
+- Updated: Distribution and repository; Nextcloud installation; Implementation roadmap; Release evidence; Stack and contracts.
+- Lineage: Owner's live Git Bash transcript closes the private-share installation proof. The updater commit is still unpublished; deployment activation and generic successor ingestion remain separate.
+- Scope: Implemented explicit update and rollback for installer-owned snapshots, local active pointer and launcher, verified archive-cache reuse, private config carry-forward, and safe failure behavior. The GitHub README documents all commands. No global PATH/environment change or immutable release rewrite.
+- Verification: 65 tests, catalog guard, Bash syntax and Git whitespace checks passed. A partial remote update smoke stopped safely before private download and did not switch the pointer. Full remote updater proof awaits the new commit.
+- Authority: No staging, commit, push, tag, cloud upload, paid model call or catalog rebuild performed in this turn.
+
+## [2026-10-14] lint | 0 confirmed issues, 0 auto-fixed
+
+- Structure: 107 local links checked; all 8 indexed article dates match.
+- Evidence: 0 evidence errors and 0 unreferenced raw files. The existing 16443 fidelity candidate is present in the linked restore JSON; the checker omits fenced source blocks.
+- Publication guard: Public source and generated catalog pass; exact private share link and token are absent from public documentation. This is a bounded source scan, not a complete rights audit.
+

@@ -68,8 +68,8 @@ first five, not necessarily the exact preselected icon. This is fixed-corpus
 evidence, not a guarantee for arbitrary queries or future packs; automated
 judgments can also be wrong.
 
-Local release and download/restore checks have passed. Live Nextcloud
-installation remains a release gate. General multi-package ingestion and
+The owner's live Nextcloud installation downloaded all four private image ZIPs
+and passed deep release verification. General multi-package ingestion and
 successor publication are planned, not complete.
 See [Release evidence and limitations](wiki/quality/release-evidence.md).
 
@@ -81,6 +81,37 @@ only the destination path. No manual clone or configuration-file copying:
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- "/path/to/ImageIndexer"
 ```
+
+To update an existing installation, use the **original path** again:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- update "/path/to/ImageIndexer"
+```
+
+The update installs the current `main` commit in a sibling directory named
+after its commit, reuses the original installation's verified image ZIP cache,
+copies its private share configuration, and performs deep verification before
+switching the local active-version pointer. The old installation remains for
+rollback. Allow roughly 4 GB of additional free space for the new image copy.
+Rerunning `update` at the same commit reports that it is current.
+If image download or extraction stops, rerun `update` to resume the candidate;
+the pointer stays on the previous installation until verification succeeds. An
+interrupted public source copy without a receipt is refused for safety and needs
+inspection before removing that specific candidate directory.
+
+Rollback is explicit:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- rollback "/path/to/ImageIndexer"
+```
+
+The installer prints the command for `ImageIndexerRun.py`, a launcher inside
+the original directory. Use that launcher to follow updates; commands that
+name `catalog/release/.../iconctl.py` directly remain pinned to their original
+installation. Existing services must be restarted to load the selected version.
+No global `PATH` or environment variables are changed. Keep the original
+directory and the selected sibling directory; rollback checks the earlier
+release again before switching.
 
 For Windows Git Bash, a destination such as `"C:/ImageIndexer"` works. This is
 not a native PowerShell script. Requires curl, Bash and Python 3.11+ with SQLite
@@ -95,9 +126,9 @@ the hidden prompt. It creates private configuration automatically, downloads
 and verifies the image archives, and prints the command to open the browser.
 The password is never saved to disk or supplied as a command-line argument.
 
-Rerun the same command/path to resume the same snapshot. Unrelated nonempty
-directories and conflicting image files are never overwritten. Choose a new
-directory to install a newer snapshot; this is not an in-place updater.
+Rerun the one-path install command to resume that snapshot. Unrelated nonempty
+directories and conflicting image files are never overwritten. `update` selects
+a newer `main` commit without replacing the original snapshot.
 The `main` entry point trusts this GitHub repository's current code: inspect
 the script before executing it if your deployment policy requires that.
 
@@ -154,8 +185,8 @@ The public guard stops files at the 100 MiB safety ceiling so future growth
 cannot silently break ordinary GitHub storage. Do not normalize line endings
 inside the pinned `catalog/release/` payload.
 
-Next comes validation against the actual cloud share, field-test feedback and
-an append-only path for adding packages without changing existing identities.
+Next comes field-test feedback and an append-only path for adding packages
+without changing existing identities.
 No full-corpus rebuild is required just to distribute the current release.
 
 - [Implementation roadmap](wiki/planning/implementation-roadmap.md)

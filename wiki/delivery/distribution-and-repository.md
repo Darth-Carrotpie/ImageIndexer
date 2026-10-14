@@ -1,7 +1,7 @@
 # Public repository and release process
 
-> Sources: Owner public-data directions, 2026-10-12; public catalog preparation and verification, 2026-10-12; earlier distribution proposal, 2026-10-11; guided installer direction and proof, 2026-10-14
-> Raw: [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Implementation proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md)
+> Sources: Owner public-data directions, 2026-10-12; public catalog preparation and verification, 2026-10-12; earlier distribution proposal, 2026-10-11; guided installer direction and proof, 2026-10-14; live install and update direction, 2026-10-14
+> Raw: [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Implementation proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md); [Live install and update](../../raw/delivery/2026-10-14-live-install-and-update-direction.md)
 > Updated: 2026-10-14
 
 ## Approved boundary
@@ -61,13 +61,13 @@ claim that images are installed. Full verification remains the downloader's
 post-install gate. Future growth must pass the size gate or trigger a new
 storage decision; do not silently switch to LFS or omit the database.
 
-## Owner step A: publish the installer update
+## Owner step A: publish the updater release candidate
 
 The earlier handoff described initializing Git and publishing the first commit.
 
 > **Status: Outdated** (2026-10-14)
-> The owner has published the initial repository and configured `origin`.
-> Live GitHub source download passed. Only the new installer change needs
+> The owner has published the guided installer and configured `origin`.
+> Its live Nextcloud field test passed. Only the updater implementation needs
 > committing and pushing; do not initialize or add the remote again.
 
 This implementation turn has not staged, committed or pushed changes.
@@ -79,7 +79,7 @@ git add -- .
 git diff --cached --stat
 git diff --cached --name-only
 git diff --cached --check
-git commit -m "Add guided one-command installer"
+git commit -m "Add verified side-by-side installation updates"
 git push origin main
 ```
 
@@ -92,37 +92,50 @@ threshold. Use Git push, not browser file upload. The automatic source archive
 now contains `catalog/` too; its entry point is there. The standalone no-icon
 ZIP is only a convenient alternative.
 
-## Owner step B: verify the guided private-image installation
+## Owner step B: verify the updater against the live installation
 
 Upload the four unchanged image ZIPs from
 `work/nextcloud-distribution-v1/` to one password-protected, read-only Nextcloud
 folder with downloads enabled. Preserve their exact filenames. Share access
 only with people covered by the applicable asset rights.
 
-The owner reports that Nextcloud is already prepared. Keep the same image ZIPs;
-this installer change needs no archive or database rebuild. The former fresh-clone
-and manual JSON-copy consumer steps are superseded by the guided installer.
+The owner installed all four private image ZIPs through the live Nextcloud
+share and received `Installation verified: release/iip-r000001`. Keep those
+same image ZIPs; this updater change needs no archive or database rebuild. The
+former fresh-clone and manual JSON-copy consumer steps remain superseded.
 
-After pushing, use a new installation destination and run in Bash (Git Bash on
-Windows, not PowerShell):
+After pushing, update the original tested installation with Bash (Git Bash on
+Windows, not PowerShell). Use its original directory, including if its name
+contains spaces:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- "/path/to/ImageIndexer"
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- update "/path/to/ImageIndexer"
 ```
 
-Accept image installation, paste the private folder link, and enter the hidden
-password. Require `Installation verified`; rerun the same command/path to test
-safe repeat behavior. The printed browser command opens the installed catalog.
-There is no Git working tree in this snapshot, so `git status` is not an install
-gate. The [Nextcloud guide](nextcloud-installation.md) covers recovery and limits.
+The command creates a commit-named sibling of the original directory. It
+copies the saved private share configuration, reuses verified cached image
+ZIPs, deeply verifies the new release and runs `version` before switching the
+local `.imageindexer-active.json` pointer. Check the printed source commit and
+launch through the original directory's `ImageIndexerRun.py`. Rerun `update`
+to confirm the current-commit no-op. For a rollback check, run:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- rollback "/path/to/ImageIndexer"
+```
+
+Rollback deeply verifies the previous installation and switches the pointer
+back. The directories remain intact. Existing services need a restart to load
+the selected version. No global PATH or environment variable is modified.
+The [Nextcloud guide](nextcloud-installation.md) covers recovery and limits.
 
 ## Manual step C: tag and publish the field-test download
 
-After the real remote install passes, tag the checked source/data commit:
+After the updater's real remote installation passes, tag the checked
+source/data commit. For example, if the owner chooses `v0.1.0`:
 
 ```powershell
-git tag -a iip-r000001-public-v1 -m "Public catalog field test"
-git push origin iip-r000001-public-v1
+git tag -a v0.1.0 -m "ImageIndexer release"
+git push origin v0.1.0
 ```
 
 The prior handoff recommended attaching
@@ -158,9 +171,14 @@ matching images and release/profile pins before activation. A Git tag,
 catalog release ID, logical revision and deployment's active pointer are
 different identities. Preserve the [deployment contract](../architecture/stack-and-contracts.md).
 
-The installer records one exact source commit and never advances an existing
-destination to a newer snapshot. Use a new destination for updates. Choosing
-arbitrary tagged installer snapshots is not implemented by its single-path CLI.
+The original one-path install command resumes its recorded source commit.
+The explicit `update` command fetches the latest `main` commit into a sibling
+and changes only a local launcher pointer after successful verification.
+`rollback` reverses that pointer after checking the previous release. The
+original install and previous version are retained. This installer pointer is
+different from the deployment tool's external `active.json`; both differ from
+Git tags and catalog release IDs. Choosing an arbitrary tagged installer
+snapshot is not yet implemented.
 
 ## See Also
 

@@ -2,9 +2,18 @@
 # Run in Bash (Linux, macOS, WSL or Git Bash); no Git checkout is required.
 set -euo pipefail
 
-if [[ $# != 1 || $1 == --help || $1 == -h ]]; then
-    printf 'Usage: bash ImageIndexerInstaller.sh INSTALL_DIRECTORY\nRequires Bash, Python 3.11+ (or uv), HTTPS access and an interactive terminal.\n'
-    [[ $# == 1 && ( $1 == --help || $1 == -h ) ]] && exit 0
+if [[ $# == 1 && ( $1 == --help || $1 == -h ) ]]; then
+    printf 'Usage: bash ImageIndexerInstaller.sh [install|update|rollback] INSTALL_DIRECTORY\nOmit install for the original one-path command. update/rollback use that original path.\nRequires Bash, Python 3.11+ (or uv), HTTPS access and an interactive terminal.\n'
+    exit 0
+fi
+if [[ $# == 1 ]]; then
+    mode=install
+    destination=$1
+elif [[ $# == 2 && ( $1 == install || $1 == update || $1 == rollback ) ]]; then
+    mode=$1
+    destination=$2
+else
+    printf 'Usage: bash ImageIndexerInstaller.sh [install|update|rollback] INSTALL_DIRECTORY\n' >&2
     exit 2
 fi
 
@@ -28,13 +37,12 @@ if [[ ${#runtime[@]} == 0 ]]; then
     printf 'Install Python 3.11+ with SQLite FTS5, or uv, then rerun. No system packages were changed.\n' >&2
     exit 1
 fi
-destination=$1
 if command -v cygpath >/dev/null 2>&1; then
     destination=$(cygpath -w "$destination")
 fi
 
 # Keep bootstrap logic here so curl needs to fetch only this entry point.
-"${runtime[@]}" -B - "$destination" <<'IMAGEINDEXER_PY'
+"${runtime[@]}" -B - "$mode" "$destination" <<'IMAGEINDEXER_PY'
 import hashlib
 import json
 import os
@@ -51,6 +59,7 @@ import zipfile
 
 REPOSITORY = "Darth-Carrotpie/ImageIndexer"
 RECEIPT = ".imageindexer-install.json"
+ACTIVE = ".imageindexer-active.json"
 LIMIT = 300 * 1024 * 1024
 
 
@@ -119,24 +128,39 @@ def run(root, *arguments):
     subprocess.run([sys.executable, "-B", *map(str, arguments)], cwd=root, stdin=sys.stdin, check=True)
 
 
-def bootstrap(root):
+def latest_commit():
+    with tempfile.TemporaryFile() as response:
+        fetch(f"https://api.github.com/repos/{REPOSITORY}/git/ref/heads/main", response, 1024 * 1024)
+        response.seek(0)
+        commit = json.load(response)["object"]["sha"]
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ValueError("Invalid GitHub commit identity")
+    return commit
+
+
+def read_receipt(root):
+    receipt = root / RECEIPT
+    no_links(receipt)
+    saved = json.loads(receipt.read_text(encoding="utf-8"))
+    if saved.get("repository") != REPOSITORY or not re.fullmatch(r"[0-9a-f]{40}", saved.get("commit", "")):
+        raise ValueError("Unrecognized install receipt; use a new directory")
+    return saved["commit"]
+
+
+def bootstrap(root, commit=None):
     receipt = root / RECEIPT
     if receipt.exists():
-        no_links(receipt)
-        saved = json.loads(receipt.read_text(encoding="utf-8"))
-        if saved.get("repository") != REPOSITORY or not re.fullmatch(r"[0-9a-f]{40}", saved.get("commit", "")):
-            raise ValueError("Unrecognized install receipt; use a new directory")
-        print("Resuming existing snapshot " + saved["commit"], flush=True)
+        saved_commit = read_receipt(root)
+        if commit is not None and saved_commit != commit:
+            raise ValueError("Existing destination is a different source commit")
+        print("Resuming existing snapshot " + saved_commit, flush=True)
     else:
         if any(p.name != ".installer.lock" for p in root.iterdir()):
             raise ValueError("Destination is not empty and is not an installer-owned snapshot; use a new directory")
         print("Downloading the public source and catalog (no Git required)...", flush=True)
         with tempfile.TemporaryDirectory(prefix=".installer-", dir=root) as scratch:
             scratch = Path(scratch)
-            metadata = scratch / "commit.json"
-            with metadata.open("xb") as stream:
-                fetch(f"https://api.github.com/repos/{REPOSITORY}/git/ref/heads/main", stream, 1024 * 1024)
-            commit = json.loads(metadata.read_text(encoding="utf-8"))["object"]["sha"]
+            commit = commit or latest_commit()
             if not re.fullmatch(r"[0-9a-f]{40}", commit):
                 raise ValueError("Invalid GitHub commit identity")
             archive = scratch / "source.zip"
@@ -160,9 +184,10 @@ def bootstrap(root):
     for path in root.rglob("*"):
         no_links(path)
     run(root, root / "tools/prepare_public_catalog.py", "check")
+    return read_receipt(root)
 
 
-def install(root):
+def install(root, commit=None, archives_dir=None, private_config=None):
     root = Path(os.path.abspath(root.expanduser()))
     no_links(root)
     if root == Path(root.anchor):
@@ -174,21 +199,123 @@ def install(root):
     except FileExistsError:
         raise ValueError("Installer lock exists; confirm no installer is running before removing .installer.lock") from None
     try:
-        bootstrap(root)
+        commit = bootstrap(root, commit)
+        config = root / "catalog/nextcloud.json"
+        if private_config is not None and not config.exists():
+            no_links(private_config)
+            if private_config.is_file():
+                with private_config.open("rb") as source, config.open("xb") as output:
+                    shutil.copyfileobj(source, output)
         print("Public catalog ready. Image access requires your own asset license.", flush=True)
         print("Allow at least 8 GB for images and cached ZIPs; use a hard-link-capable filesystem.", flush=True)
-        if input("Download/verify private images now? [Y/n]: ").strip().lower() not in ("n", "no"):
+        if archives_dir is not None:
+            run(root, root / "catalog/download_icons.py", "--archives-dir", archives_dir)
+        elif input("Download/verify private images now? [Y/n]: ").strip().lower() not in ("n", "no"):
             print("The downloader will ask for the share link and hidden password only when needed.", flush=True)
             run(root, root / "catalog/download_icons.py")
         else:
             print("Metadata-only installation; images have NOT been verified.", flush=True)
         plan = json.loads((root / "catalog/distribution.json").read_text(encoding="utf-8"))
         release = root / "catalog" / plan["release_path"]
-        print("\nInstalled at: " + str(root))
-        print("Open the local browser with:\n" + shlex.join([
-            sys.executable.replace("\\", "/"), "-B", str(release / "iconctl.py").replace("\\", "/"),
-            "--package", str(release).replace("\\", "/"), "serve"]))
-        print("Rerun the installer with the same path to resume; use a new path for a newer snapshot.")
+        if archives_dir is None:
+            print("\nInstalled at: " + str(root) + " (commit " + commit + ")")
+            launcher = root / "ImageIndexerRun.py"
+            command = ([sys.executable.replace("\\", "/"), "-B", str(launcher).replace("\\", "/"), "serve"]
+                       if launcher.is_file() else [sys.executable.replace("\\", "/"), "-B",
+                       str(release / "iconctl.py").replace("\\", "/"), "--package",
+                       str(release).replace("\\", "/"), "serve"])
+            print("Open the local browser with:\n" + shlex.join(command))
+            print("Rerun the one-path install command to resume this snapshot; use update on that path for a newer commit.")
+        return commit
+    finally:
+        lock.unlink()
+
+
+def selected(manager):
+    marker = manager / ACTIVE
+    no_links(marker)
+    if not marker.exists():
+        return manager, None
+    state = json.loads(marker.read_text(encoding="utf-8"))
+    if set(state) != {"active", "previous"}:
+        raise ValueError("Invalid active-version pointer")
+    chosen = []
+    for raw in (state["active"], state["previous"]):
+        if raw is None:
+            chosen.append(None)
+            continue
+        path = Path(raw)
+        no_links(path)
+        if not path.is_absolute():
+            raise ValueError("Active-version paths must be absolute")
+        commit = read_receipt(path)
+        if path != manager and (path.parent != manager.parent or path.name != manager.name + "-" + commit[:12]):
+            raise ValueError("Active-version pointer is outside the managed installations")
+        chosen.append(path)
+    if chosen[0] is None or chosen[0] == chosen[1]:
+        raise ValueError("Invalid active-version pointer")
+    return chosen
+
+
+def switch(manager, active, previous):
+    marker = manager / ACTIVE
+    no_links(marker)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n",
+                                         prefix=".active-", dir=manager, delete=False) as stream:
+            temporary = Path(stream.name)
+            json.dump({"active": str(active), "previous": str(previous) if previous else None}, stream)
+            stream.write("\n")
+        os.replace(temporary, marker)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
+def update(manager, rollback=False):
+    manager = Path(os.path.abspath(manager.expanduser()))
+    no_links(manager)
+    read_receipt(manager)
+    lock = manager / ".installer.lock"
+    try:
+        lock.touch(exist_ok=False)
+    except FileExistsError:
+        raise ValueError("Installer lock exists; confirm no installer is running before removing .installer.lock") from None
+    try:
+        active, previous = selected(manager)
+        if rollback:
+            if previous is None:
+                raise ValueError("No previous verified installation to roll back to")
+            plan = json.loads((previous / "catalog/distribution.json").read_text(encoding="utf-8"))
+            release = previous / "catalog" / plan["release_path"]
+            run(previous, release / "iconctl.py", "--package", release, "verify", "--deep", "--json")
+            switch(manager, previous, active)
+            print("Active installation rolled back to " + str(previous))
+            print("Stable launch command:\n" + shlex.join([
+                sys.executable.replace("\\", "/"), "-B",
+                str(manager / "ImageIndexerRun.py").replace("\\", "/"), "serve"]))
+            return
+        commit = latest_commit()
+        if commit == read_receipt(active):
+            print("Already at the current main commit: " + commit)
+            return
+        candidate = manager.parent / (manager.name + "-" + commit[:12])
+        no_links(candidate)
+        # The old cache stays intact; new archives are verified by the downloader.
+        install(candidate, commit, manager / "catalog/download-cache", active / "catalog/nextcloud.json")
+        release = candidate / "catalog" / json.loads((candidate / "catalog/distribution.json").read_text(encoding="utf-8"))["release_path"]
+        run(candidate, release / "iconctl.py", "--package", release, "version", "--json")
+        launcher = manager / "ImageIndexerRun.py"
+        no_links(launcher)
+        if not launcher.exists():
+            with (candidate / launcher.name).open("rb") as source, launcher.open("xb") as output:
+                shutil.copyfileobj(source, output)
+        switch(manager, candidate, active)
+        print("Active installation updated to " + str(candidate))
+        print("Previous installation retained: " + str(active))
+        print("Stable launch command:\n" + shlex.join([
+            sys.executable.replace("\\", "/"), "-B", str(launcher).replace("\\", "/"), "serve"]))
     finally:
         lock.unlink()
 
@@ -197,7 +324,11 @@ if __name__ == "__main__":
     try:
         # Script bytes arrive on stdin, including for curl | bash; prompts need the terminal.
         sys.stdin = open("CONIN$" if os.name == "nt" else "/dev/tty", encoding="utf-8")
-        install(Path(sys.argv[1]))
+        mode, destination = sys.argv[1], Path(sys.argv[2])
+        if mode == "install":
+            install(destination)
+        else:
+            update(destination, rollback=mode == "rollback")
     except (OSError, ValueError, KeyError, TypeError, EOFError, zipfile.BadZipFile, subprocess.CalledProcessError) as exc:
         sys.exit("Installation stopped: " + str(exc))
     except KeyboardInterrupt:

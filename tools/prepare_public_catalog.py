@@ -73,8 +73,8 @@ def check_catalog(root):
 
 def inspect_public_file(path, relative, database_relative):
     if (relative.startswith("work/") or path.suffix.lower() in PRIVATE_SUFFIXES
-            or path.name in ("nextcloud.json", ".download.lock", ".installer.lock", ".imageindexer-install.json")
-            or path.name.startswith(".nextcloud-")
+            or path.name in ("nextcloud.json", ".download.lock", ".installer.lock", ".imageindexer-install.json", ".imageindexer-active.json")
+            or path.name.startswith((".nextcloud-", ".active-"))
             or path.name.startswith(".env") and path.name != ".env.example"
             or ".sqlite" in path.name and relative != database_relative):
         raise ValueError("Private/generated file would enter Git: " + relative)

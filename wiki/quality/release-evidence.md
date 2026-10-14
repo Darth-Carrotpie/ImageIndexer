@@ -1,7 +1,7 @@
 # Verified release and limitations
 
-> Sources: Initial release readiness, final search report, distribution verification and live workbench audit, 2026-10-11; public-data directions and proof, 2026-10-12; guided installer direction and proof, 2026-10-14
-> Raw: [Readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Search report](../../raw/quality/2026-10-11-final-search-report.md); [Distribution proof](../../raw/delivery/2026-10-11-distribution-verification.md); [Live audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Public-data decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md)
+> Sources: Initial release readiness, final search report, distribution verification and live workbench audit, 2026-10-11; public-data directions and proof, 2026-10-12; guided installer direction and proof, 2026-10-14; live install and update direction, 2026-10-14
+> Raw: [Readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Search report](../../raw/quality/2026-10-11-final-search-report.md); [Distribution proof](../../raw/delivery/2026-10-11-distribution-verification.md); [Live audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Public-data decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md); [Live install and update](../../raw/delivery/2026-10-14-live-install-and-update-direction.md)
 > Updated: 2026-10-14
 
 ## Current status
@@ -11,9 +11,10 @@ prepared and locally verified; the actual cloud endpoint is not configured or
 tested. This is not evidence of public publication or production activation.
 
 > **Status: Outdated** (2026-10-14)
-> The owner has published the initial source/catalog repository and reports
-> Nextcloud prepared. A live GitHub installer bootstrap passed. Actual private
-> Nextcloud authentication and production activation remain unverified.
+> The owner has published the source/catalog repository. The later Git Bash
+> transcript confirms live Nextcloud authentication, all four archive downloads
+> and a successful deep release check. Production activation and the new
+> updater's post-push field test remain open.
 
 | Pin | SHA-256, without prefix |
 |---|---|
@@ -79,11 +80,27 @@ terminal prompt and resumed the same snapshot without re-downloading. Source
 and published downloader copies match; database and release manifest hashes
 are unchanged. The new installer itself still needs committing and pushing.
 
+> **Status: Outdated** (2026-10-14)
+> The owner subsequently published and live-tested that installer. Only the
+> updater changes described below await a new commit and push.
+
+The owner subsequently provided a successful live private-share install log:
+all four archives downloaded and `Installation verified: release/iip-r000001`
+followed `{"ok":true,"package_status":"release_manifest_present","errors":[]}`.
+The public evidence omits the share URL and token. The subsequent updater
+implementation passed 65 tests, public catalog guard, Bash syntax and Git
+whitespace checks. Mocked failure and rollback paths leave the local active
+pointer unchanged. A smoke update fetched an existing remote commit into a
+sibling metadata-only proof, then stopped at the share prompt because that
+proof had no image ZIP cache; the original pointer was unchanged. Full remote
+promotion awaits the updater commit.
+
 ## Limits and next evidence
 
-- No live Nextcloud authentication or complete private-image remote install proof yet.
-- Public repository download is proven; publishing the installer update and
-  production consumer integration remain open. Image rights remain separate.
+- Live private-image installation is proven by the owner transcript; the
+  uncommitted updater still needs a remote update and rollback rehearsal.
+- Public repository download is proven; publishing the updater and production
+  consumer integration remain open. Image rights remain separate.
 - Windows Git Bash was tested; native Linux/macOS/WSL execution was not.
 - No general new-icon successor ingestion or publication-head automation.
 - Browser behavior is checked; pixel-level browser layout was not verified.

@@ -1,8 +1,8 @@
 # Technical stack and contracts
 
-> Sources: Installation, deployment and usage contracts, Unknown; initial field-test report and live code audit, 2026-10-11; public-data directions and proof, 2026-10-12
-> Raw: [Requirements](../../raw/architecture/runtime-and-build-requirements.md); [Deployment](../../raw/architecture/deployment-contract.md); [Usage](../../raw/architecture/consumer-usage.md); [Search report](../../raw/quality/2026-10-11-final-search-report.md); [Code audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Public-data decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md)
-> Updated: 2026-10-12
+> Sources: Installation, deployment and usage contracts, Unknown; initial field-test report and live code audit, 2026-10-11; public-data directions and proof, 2026-10-12; live install and update direction, 2026-10-14
+> Raw: [Requirements](../../raw/architecture/runtime-and-build-requirements.md); [Deployment](../../raw/architecture/deployment-contract.md); [Usage](../../raw/architecture/consumer-usage.md); [Search report](../../raw/quality/2026-10-11-final-search-report.md); [Code audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Public-data decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Live install and update](../../raw/delivery/2026-10-14-live-install-and-update-direction.md)
+> Updated: 2026-10-14
 
 ## Implemented stack
 
@@ -67,6 +67,13 @@ The implemented local deployment selector verifies a release before changing an
 external `active.json`. It does not copy files or restart a consumer. Readers
 must report the loaded version after reload, and must keep database and asset
 paths bound to the same release.
+
+The installer's `.imageindexer-active.json` is a separate local selector. Its
+`ImageIndexerRun.py` launcher reads this pointer to choose a fully verified
+side-by-side installation. `update` and `rollback` change it atomically after
+verification; existing processes continue using the version they already
+loaded until restarted. It does not alter the deployment tool's `active.json`
+or a Git tag, and it does not change global PATH or environment variables.
 
 The intended publication head means newest ever published; deployment may select
 an older release during rollback. General locked publication-head advancement

@@ -1,7 +1,7 @@
 # Implementation and public-release roadmap
 
-> Sources: Initial readiness, 2026-10-11; owner public-data directions and public catalog proof, 2026-10-12; earlier distribution proposal, 2026-10-11; guided installer direction and proof, 2026-10-14
-> Raw: [Initial readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md)
+> Sources: Initial readiness, 2026-10-11; owner public-data directions and public catalog proof, 2026-10-12; earlier distribution proposal, 2026-10-11; guided installer direction and proof, 2026-10-14; live install and update direction, 2026-10-14
+> Raw: [Initial readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md); [Live install and update](../../raw/delivery/2026-10-14-live-install-and-update-direction.md)
 > Updated: 2026-10-14
 
 ## Completed baseline
@@ -23,6 +23,10 @@
   modern/legacy Nextcloud authentication; current suite passes 61 tests.
 - Initial repository published by the owner; live GitHub source bootstrap and
   Windows Git Bash pipeline/resume checks pass without installing private images.
+- Owner's live Git Bash installation downloaded all four image archives through
+  Nextcloud and passed deep verification.
+- Explicit side-by-side update, local launcher/active pointer, archive-cache
+  reuse and verified rollback implemented locally; 65 tests pass.
 
 The prior plan called for a source-only export and a separate data download.
 
@@ -36,20 +40,22 @@ The earlier follow-up required a fresh clone and manual JSON copying.
 > The owner prepared GitHub and Nextcloud and requested a guided installer.
 > Publish that update, then use its prompts. Cloning remains a developer option.
 
-## Next: publish the installer and prove actual cloud access
+## Next: publish and prove the updater
 
 Follow the exact [manual release steps](../delivery/distribution-and-repository.md):
-commit/push the checked installer changes, then run the one-command installer
-into a new directory using the actual Nextcloud share. No image archive rebuild
-or repeat upload is needed if the prepared folder contains the unchanged ZIPs.
+commit/push the checked updater changes, then run `update` against the original
+live installation. Confirm the new candidate passes deep verification, the
+local launcher selects it, and `rollback` selects the verified previous version.
+No image archive rebuild or repeat upload is needed for the current release.
 
-**Acceptance:** source-snapshot search works without credentials; private-image
-installation passes deep verification; repeated installation is safe; restored
-images/configuration stay private. Failed credentials, corruption and
-resume behavior have local automated coverage, not yet real-server proof.
+**Acceptance:** original live install remains available; verified cache archives
+are reused; failed updates leave the active pointer unchanged; successful
+update/rollback commands select the expected release through the launcher.
+The downloader's live Nextcloud full install has passed; the updater's live
+promotion still needs the post-push field test.
 
 No annotation or database rebuild is needed. No independent manual reviewer is
-required; the owner supplies access and decides when to publish.
+required; the owner decides when to tag the tested implementation commit.
 
 ## Then: tag and publish the field-test download
 

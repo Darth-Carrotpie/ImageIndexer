@@ -18,6 +18,21 @@ Git Bash on Windows (not directly in PowerShell), run:
 curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- "/path/to/ImageIndexer"
 ```
 
+For an existing guided installation, use its original path to update or roll
+back. The [GitHub README](https://github.com/Darth-Carrotpie/ImageIndexer#readme)
+documents the full version and launcher behavior:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- update "/path/to/ImageIndexer"
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- rollback "/path/to/ImageIndexer"
+```
+
+An update creates and deeply verifies a commit-named sibling, reuses the
+original verified archive cache, then switches the original directory's local
+launcher. The previous installation stays available. No global `PATH` or
+environment variable is changed. Standalone no-icon ZIPs do not carry this
+installer state or update themselves.
+
 Use `"C:/ImageIndexer"` as a Windows example. Requires curl, Bash and Python
 3.11+ with SQLite FTS5, or an existing `uv` which can supply Python. No system
 package installation or administrator rights are needed. Choose a new or empty
@@ -27,8 +42,8 @@ The installer fetches one commit-pinned public source/catalog snapshot, checks
 the metadata, and prompts for image installation, the private folder share link
 and a hidden password. It writes configuration, never the password. Declining
 image installation leaves usable metadata, not a fully verified image release.
-It prints the browser command after success. Rerun the same command/path to
-resume; use a new path for a newer snapshot. The public entry point follows
+It prints the browser command after success. Rerun the one-path command to
+resume; use `update` with that original path for a newer snapshot. The public entry point follows
 `main`; review it before running if required by your deployment policy.
 
 The remaining commands apply to an existing snapshot (`catalog/`) or standalone

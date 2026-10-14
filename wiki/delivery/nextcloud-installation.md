@@ -1,7 +1,7 @@
 # Nextcloud installation and current artifacts
 
-> Sources: Nextcloud guide, Unknown; distribution build, restore proof and live audit, 2026-10-11; public catalog proof, 2026-10-12; guided installer direction and proof, 2026-10-14
-> Raw: [Guide](../../raw/delivery/nextcloud-release-guide.md); [Build inventory](../../raw/delivery/2026-10-11-distribution-build.md); [Restore proof](../../raw/delivery/2026-10-11-distribution-verification.md); [Live audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Distribution recommendation](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md)
+> Sources: Nextcloud guide, Unknown; distribution build, restore proof and live audit, 2026-10-11; public catalog proof, 2026-10-12; guided installer direction and proof, 2026-10-14; live install and update direction, 2026-10-14
+> Raw: [Guide](../../raw/delivery/nextcloud-release-guide.md); [Build inventory](../../raw/delivery/2026-10-11-distribution-build.md); [Restore proof](../../raw/delivery/2026-10-11-distribution-verification.md); [Live audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Distribution recommendation](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md); [Live install and update](../../raw/delivery/2026-10-14-live-install-and-update-direction.md)
 > Updated: 2026-10-14
 
 ## Implemented transport
@@ -46,8 +46,8 @@ pending-proof status without rewriting that earlier record.
 
 Upload the four unchanged image ZIPs to one read-only, password-protected
 Nextcloud folder with downloads enabled. Preserve their names. The owner reports
-GitHub and Nextcloud are prepared; the public source download is verified, but
-private-share authentication still needs a real-server check.
+GitHub and Nextcloud are prepared. The owner's live private-share run
+downloaded all four image archives and passed deep verification.
 
 The former consumer instructions required cloning and copying the example JSON.
 
@@ -55,7 +55,7 @@ The former consumer instructions required cloning and copying the example JSON.
 > The owner requested one guided installer. Cloning remains optional for
 > development; creating configuration manually is no longer required.
 
-After the installer change is committed and pushed, run in Bash:
+For a new guided installation, run in Bash:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- "/path/to/ImageIndexer"
@@ -77,6 +77,19 @@ Keep links/tokens private and passwords separate. Nothing secret goes into the
 tracked example. This flow trusts the current `main` entry point; its hashes
 detect corruption, not repository compromise. The historical standalone ZIPs
 above are unchanged and do not contain this newer guided setup/authentication fix.
+
+After the updater commit is pushed, run with the original install path:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- update "/path/to/ImageIndexer"
+```
+
+This creates a sibling snapshot, reuses the original's image ZIP cache and
+saved share configuration, deeply verifies the new release and switches a local
+active pointer. The previous installation remains. Use the printed stable
+`ImageIndexerRun.py` command for newly selected versions. The [GitHub
+README](https://github.com/Darth-Carrotpie/ImageIndexer#readme) also documents
+explicit rollback. No global PATH or environment variable is changed.
 
 Before installing images, text search and metadata lookup already work. The
 publication guard reports `metadata_verified_images_not_checked`; image previews,
@@ -114,10 +127,12 @@ Range is supported, and safely restarts when it is not. Conflicting installed
 files are not overwritten. Hash checks occur before extraction and on restored
 files; deep catalog verification runs before success is reported.
 
-The top-level installer resumes only its recorded snapshot. It refuses unrelated
-nonempty directories and symlink/junction paths; use a new destination for a
-newer source version. An interrupted source copy without an install receipt is
-also refused. Remove `.installer.lock` only after confirming no installer runs.
+The one-path installer resumes only its recorded snapshot. `update` creates a
+new sibling for a newer `main` commit and leaves its original directory intact.
+It refuses unrelated nonempty directories and symlink/junction paths. An
+interrupted source copy without an install receipt is refused; inspect that
+specific candidate before cleanup. Remove `.installer.lock` only after
+confirming no installer runs.
 
 For offline installation, use `--offline --archives-dir <copied-zips>` with the
 same downloader. There is no automatic network retry loop or partial/on-demand
@@ -130,10 +145,10 @@ filesystem must support hard links, such as NTFS, ext4 or APFS; FAT/exFAT is not
 supported by the atomic extraction path. Stale lock recovery requires confirming
 that no installer is running. Exact recovery details remain in the preserved guide.
 
-Local restore and repeat-install checks passed. The new installer passed a live
-GitHub source download and Windows Git Bash terminal/pipeline checks, with
-private images declined. Real Nextcloud connectivity/authentication is still
-an open check; native Linux/macOS/WSL execution was not exercised.
+Local restore and repeat-install checks passed. The owner also completed live
+Nextcloud authentication and full download/verification in Windows Git Bash.
+Updater unit checks pass, while a full remote update test awaits the updater
+commit. Native Linux/macOS/WSL execution was not exercised.
 Hashes detect corruption against trusted pins; they are not digital signatures.
 
 ## See Also

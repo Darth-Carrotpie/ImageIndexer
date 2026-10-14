@@ -22,6 +22,8 @@ nextcloud.json
 .download.lock
 .installer.lock
 .imageindexer-install.json
+.imageindexer-active.json
+.active-*
 .nextcloud-*
 *.part
 *.log
