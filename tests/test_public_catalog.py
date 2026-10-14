@@ -95,7 +95,8 @@ class PublicCatalogTest(unittest.TestCase):
     def test_private_files_secrets_and_oversized_files_are_rejected(self):
         sample = self.root / "sample.txt"
         sample.write_text("normal")
-        for name in ("work/run.txt", "art.png", "nextcloud.json", ".env", "other.sqlite-wal"):
+        for name in ("work/run.txt", "art.png", "nextcloud.json", ".env", "other.sqlite-wal",
+                     ".nextcloud-interrupted", ".installer.lock", ".imageindexer-install.json"):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("private")

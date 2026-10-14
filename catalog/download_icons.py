@@ -96,7 +96,61 @@ class NoRedirect(HTTPRedirectHandler):
         raise ValueError("HTTP redirect refused; configure the canonical HTTPS WebDAV endpoint")
 
 
+def share_config(url, token=""):
+    parsed = urlsplit(url)
+    if (parsed.scheme != "https" or not parsed.hostname or parsed.username is not None
+            or parsed.password is not None or parsed.query or parsed.fragment
+            or any(ord(c) <= 32 for c in url)):
+        raise ValueError("Use an HTTPS share or WebDAV URL without credentials, query or fragment")
+    path = parsed.path.rstrip("/")
+    share = re.fullmatch(r"(.*?)/(?:index\.php/)?s/([A-Za-z0-9_-]+)", path)
+    modern = re.fullmatch(r"(.*?)/public\.php/dav/files/([A-Za-z0-9_-]+)", path)
+    if share:
+        prefix, token = share.groups()
+        base = f"{parsed.scheme}://{parsed.netloc}{prefix}/public.php/dav/files/{token}/"
+    elif modern:
+        token = modern[2]
+        base = url.rstrip("/") + "/"
+    elif path.endswith("/public.php/webdav") and re.fullmatch(r"[A-Za-z0-9_-]+", token):
+        base = url.rstrip("/") + "/"
+    else:
+        raise ValueError("Use the folder share link, /public.php/dav/files/TOKEN/, or legacy /public.php/webdav/")
+    return {"webdav_base_url": base, "share_token": token, "password_env": "IIP_NEXTCLOUD_PASSWORD"}
+
+
+def configure(config_path):
+    if not sys.stdin.isatty():
+        raise ValueError("Nextcloud setup needs an interactive terminal")
+    # Check before prompting or replacing: never follow a link to another file.
+    safe_path(config_path.parent, config_path.name)
+    if config_path.exists() and input("Replace saved Nextcloud configuration? [y/N]: ").strip().lower() != "y":
+        return
+    while True:
+        url = input("Nextcloud folder share link (or full public WebDAV URL): ").strip()
+        token = input("Legacy share token: ").strip() if url.rstrip("/").endswith("/public.php/webdav") else ""
+        try:
+            config = share_config(url, token)
+            break
+        except ValueError as exc:
+            print(str(exc))
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n",
+                                         prefix=".nextcloud-", dir=config_path.parent, delete=False) as output:
+            temporary = Path(output.name)
+            json.dump(config, output, indent=2)
+            output.write("\n")
+        os.replace(temporary, config_path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+    print("Saved private configuration; the password is never written to disk.")
+
+
 def credentials(config_path):
+    if not config_path.exists():
+        configure(config_path)
+    safe_path(config_path.parent, config_path.name)
     config = json.loads(config_path.read_text(encoding="utf-8-sig"))
     base = config.get("webdav_base_url", "")
     parsed = urlsplit(base)
@@ -112,7 +166,8 @@ def credentials(config_path):
         password = getpass.getpass("Nextcloud share password: ")
     if not password:
         raise ValueError("A share password is required")
-    authorization = "Basic " + base64.b64encode((token + ":" + password).encode("utf-8")).decode("ascii")
+    username = "anonymous" if "/public.php/dav/files/" in parsed.path else token
+    authorization = "Basic " + base64.b64encode((username + ":" + password).encode("utf-8")).decode("ascii")
     return base.rstrip("/") + "/", authorization
 
 
@@ -248,6 +303,7 @@ def main():
     parser.add_argument("--config", type=Path, help="default: nextcloud.json beside this script")
     parser.add_argument("--archives-dir", type=Path, help="default: download-cache beside this script")
     parser.add_argument("--offline", action="store_true", help="use existing ZIPs only; no password/network")
+    parser.add_argument("--configure", action="store_true", help="interactively create or replace private share configuration")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
     lock = safe_path(root, ".download.lock")
@@ -257,10 +313,14 @@ def main():
     except FileExistsError:
         parser.exit(1, "Another install is running, or .download.lock is stale; see README.md.\n")
     try:
+        if args.configure:
+            configure(args.config or root / "nextcloud.json")
         install(root, args.config or root / "nextcloud.json",
                 args.archives_dir.absolute() if args.archives_dir else root / "download-cache", args.offline)
-    except (ValueError, OSError, KeyError, TypeError, zipfile.BadZipFile, subprocess.CalledProcessError) as exc:
+    except (ValueError, OSError, KeyError, TypeError, EOFError, zipfile.BadZipFile, subprocess.CalledProcessError) as exc:
         parser.exit(1, "Installation stopped: " + str(exc) + "\n")
+    except KeyboardInterrupt:
+        parser.exit(130, "Installation interrupted; rerun to resume.\n")
     finally:
         lock.unlink()
 

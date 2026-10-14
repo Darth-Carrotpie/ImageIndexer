@@ -75,12 +75,36 @@ See [Release evidence and limitations](wiki/quality/release-evidence.md).
 
 ## Get started
 
-Clone [ImageIndexer](https://github.com/Darth-Carrotpie/ImageIndexer). The
-repository includes the generated SQLite database and FTS5 index, identity and
-release manifests, and a readable export of all accepted observations and
-alternatives. These are public data, stored in ordinary Git; Git LFS is not used.
+Run this in **Bash** (Linux, macOS, WSL, or **Git Bash on Windows**), replacing
+only the destination path. No manual clone or configuration-file copying:
 
-With Python 3.11+ and SQLite FTS5 available:
+```sh
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- "/path/to/ImageIndexer"
+```
+
+For Windows Git Bash, a destination such as `"C:/ImageIndexer"` works. This is
+not a native PowerShell script. Requires curl, Bash and Python 3.11+ with SQLite
+FTS5; an existing `uv` can supply Python if needed. The installer does not install
+system packages or request administrator access. Allow at least 8 GB for images
+and cached archives. Choose a dedicated directory outside Unity's imported assets.
+
+The installer downloads one commit-pinned GitHub source/catalog snapshot,
+verifies the public data, then asks whether to install private images. If yes,
+paste your password-protected **folder share link** and enter the password at
+the hidden prompt. It creates private configuration automatically, downloads
+and verifies the image archives, and prints the command to open the browser.
+The password is never saved to disk or supplied as a command-line argument.
+
+Rerun the same command/path to resume the same snapshot. Unrelated nonempty
+directories and conflicting image files are never overwritten. Choose a new
+directory to install a newer snapshot; this is not an in-place updater.
+The `main` entry point trusts this GitHub repository's current code: inspect
+the script before executing it if your deployment policy requires that.
+
+The repository includes the generated SQLite database and FTS5 index, identity
+and release manifests, and a readable export of accepted observations and
+alternatives. These are public data in ordinary Git; Git LFS is not used.
+Git cloning remains an optional development workflow:
 
 ```sh
 git clone https://github.com/Darth-Carrotpie/ImageIndexer.git
@@ -93,18 +117,19 @@ Text search and metadata work immediately without credentials. Image previews,
 copying selected images and full release verification require the private
 images, including thumbnails. No model call or database rebuild is needed.
 
-For authorized image access, copy `catalog/nextcloud.example.json` to
-`catalog/nextcloud.json`, add the privately supplied share URL/token, and run:
+Inside an existing source snapshot or clone, the downloader also creates its
+configuration interactively when first needed:
 
 ```sh
 python -B catalog/download_icons.py
 python -B catalog/release/iip-r000001/iconctl.py --package catalog/release/iip-r000001 serve
 ```
 
-Enter the password at the hidden prompt; wait for `Installation verified`
-before using images. Credentials, restored images and caches remain ignored by
-Git. Never force-add them. The separately downloadable no-icon ZIP is an
-alternative to cloning, not the only home of the catalog.
+Wait for `Installation verified` before using images. To change saved cloud
+settings, run `python -B catalog/download_icons.py --configure`. Configuration,
+restored images and caches remain ignored in Git checkouts. Never force-add
+them. The standalone no-icon ZIP remains optional; older ZIP wrappers may still
+require manual configuration and do not include the newer guided setup.
 
 The [installation guide](wiki/delivery/nextcloud-installation.md) covers
 configuration, disk requirements, offline installation and recovery.

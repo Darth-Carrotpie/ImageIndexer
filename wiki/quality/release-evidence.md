@@ -1,14 +1,19 @@
 # Verified release and limitations
 
-> Sources: Initial release readiness, final search report, distribution verification and live workbench audit, 2026-10-11; public-data directions and proof, 2026-10-12
-> Raw: [Readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Search report](../../raw/quality/2026-10-11-final-search-report.md); [Distribution proof](../../raw/delivery/2026-10-11-distribution-verification.md); [Live audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Public-data decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md)
-> Updated: 2026-10-12
+> Sources: Initial release readiness, final search report, distribution verification and live workbench audit, 2026-10-11; public-data directions and proof, 2026-10-12; guided installer direction and proof, 2026-10-14
+> Raw: [Readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Search report](../../raw/quality/2026-10-11-final-search-report.md); [Distribution proof](../../raw/delivery/2026-10-11-distribution-verification.md); [Live audit](../../raw/quality/2026-10-11-live-workbench-audit.md); [Public-data decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md)
+> Updated: 2026-10-14
 
 ## Current status
 
 `iip-r000001` is ready for local field testing. Its Nextcloud transport is
 prepared and locally verified; the actual cloud endpoint is not configured or
 tested. This is not evidence of public publication or production activation.
+
+> **Status: Outdated** (2026-10-14)
+> The owner has published the initial source/catalog repository and reports
+> Nextcloud prepared. A live GitHub installer bootstrap passed. Actual private
+> Nextcloud authentication and production activation remain unverified.
 
 | Pin | SHA-256, without prefix |
 |---|---|
@@ -67,11 +72,19 @@ it deeply, repeats installation without cloud configuration, and executes CLI
 search. Authentication failures, Range resume/fallback, interrupted transfers,
 corrupt archives and unsafe extraction have local automated coverage.
 
+The guided installer update passed 61 tests. A real GitHub archive download
+passed metadata checks and an interactive Windows Git Bash installation with
+images declined. Piping the local script through curl into Bash reached the
+terminal prompt and resumed the same snapshot without re-downloading. Source
+and published downloader copies match; database and release manifest hashes
+are unchanged. The new installer itself still needs committing and pushing.
+
 ## Limits and next evidence
 
-- No live Nextcloud authentication or remote installation proof yet.
-- Owner-authorized public metadata preparation is complete; remote publication
-  and production consumer integration remain unproven. Image rights remain separate.
+- No live Nextcloud authentication or complete private-image remote install proof yet.
+- Public repository download is proven; publishing the installer update and
+  production consumer integration remain open. Image rights remain separate.
+- Windows Git Bash was tested; native Linux/macOS/WSL execution was not.
 - No general new-icon successor ingestion or publication-head automation.
 - Browser behavior is checked; pixel-level browser layout was not verified.
 - The recorded timing probes did not flush OS caches; they are not a cold-disk

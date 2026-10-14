@@ -1,8 +1,8 @@
 # Public repository and release process
 
-> Sources: Owner public-data directions, 2026-10-12; public catalog preparation and verification, 2026-10-12; earlier distribution proposal, 2026-10-11
-> Raw: [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Implementation proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md)
-> Updated: 2026-10-12
+> Sources: Owner public-data directions, 2026-10-12; public catalog preparation and verification, 2026-10-12; earlier distribution proposal, 2026-10-11; guided installer direction and proof, 2026-10-14
+> Raw: [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Implementation proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md)
+> Updated: 2026-10-14
 
 ## Approved boundary
 
@@ -28,7 +28,9 @@ catalog only in a separate release download.
 Cloning supplies a searchable metadata example and deployment index. Only
 authorized users can fetch images. Public metadata and MIT code do not confer
 rights to vendor artwork. The repository belongs at the package-workbench root,
-not the enclosing Unity project; a deployment clone should live outside Unity.
+not the enclosing Unity project. Deploy into a dedicated directory outside
+Unity's imported assets. Consumers can use the guided installer without cloning;
+ordinary Git remains the public versioned source/data store.
 
 ## Prepared layout and checks
 
@@ -59,11 +61,16 @@ claim that images are installed. Full verification remains the downloader's
 post-install gate. Future growth must pass the size gate or trigger a new
 storage decision; do not silently switch to LFS or omit the database.
 
-## Manual step A: commit and push the prepared repository
+## Owner step A: publish the installer update
 
-The owner has initialized local Git. Agent work has not changed its staging,
-committed, added a remote or pushed. At preparation time only the older
-`.gitignore` was staged; stage the updated rules with the rest of the files.
+The earlier handoff described initializing Git and publishing the first commit.
+
+> **Status: Outdated** (2026-10-14)
+> The owner has published the initial repository and configured `origin`.
+> Live GitHub source download passed. Only the new installer change needs
+> committing and pushing; do not initialize or add the remote again.
+
+This implementation turn has not staged, committed or pushed changes.
 
 After the checks above pass, inspect and commit the public candidate set:
 
@@ -72,15 +79,12 @@ git add -- .
 git diff --cached --stat
 git diff --cached --name-only
 git diff --cached --check
-git commit -m "Prepare public catalog and image-indexing tools"
-git branch -M main
-git remote add origin https://github.com/Darth-Carrotpie/ImageIndexer.git
-git push -u origin main
+git commit -m "Add guided one-command installer"
+git push origin main
 ```
 
 The `git add` step follows the publication guard, not an unchecked bulk add.
-Never use `git add -f` for the catalog. If `origin` has already been configured,
-check `git remote -v` and skip the add when it matches. If the remote has gained
+Never use `git add -f` for the catalog. Check `git remote -v`. If the remote has gained
 commits, stop and reconcile normally; do not force-push.
 
 The database exceeds GitHub's warning threshold but remains below its block
@@ -88,35 +92,29 @@ threshold. Use Git push, not browser file upload. The automatic source archive
 now contains `catalog/` too; its entry point is there. The standalone no-icon
 ZIP is only a convenient alternative.
 
-## Manual step B: upload and configure private images
+## Owner step B: verify the guided private-image installation
 
 Upload the four unchanged image ZIPs from
 `work/nextcloud-distribution-v1/` to one password-protected, read-only Nextcloud
 folder with downloads enabled. Preserve their exact filenames. Share access
 only with people covered by the applicable asset rights.
 
-Make a fresh clone in a new directory outside Unity, then verify public search:
+The owner reports that Nextcloud is already prepared. Keep the same image ZIPs;
+this installer change needs no archive or database rebuild. The former fresh-clone
+and manual JSON-copy consumer steps are superseded by the guided installer.
 
-```powershell
-git clone https://github.com/Darth-Carrotpie/ImageIndexer.git
-cd ImageIndexer
-uv.exe run --no-project python -B tools/prepare_public_catalog.py check --repository .
-uv.exe run --no-project python -B catalog/release/iip-r000001/iconctl.py --package catalog/release/iip-r000001 search "gold key" --limit 5 --json
+After pushing, use a new installation destination and run in Bash (Git Bash on
+Windows, not PowerShell):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Darth-Carrotpie/ImageIndexer/main/ImageIndexerInstaller.sh | bash -s -- "/path/to/ImageIndexer"
 ```
 
-Copy `catalog/nextcloud.example.json` to `catalog/nextcloud.json`, fill the
-private folder WebDAV URL/token, and use the password prompt:
-
-```powershell
-uv.exe run --no-project python -B catalog/download_icons.py
-uv.exe run --no-project python -B catalog/release/iip-r000001/iconctl.py --package catalog/release/iip-r000001 verify --deep --json
-uv.exe run --no-project python -B catalog/release/iip-r000001/iconctl.py --package catalog/release/iip-r000001 serve
-git status --short
-```
-
-Require installation verification and clean Git status after hydration. The
-[Nextcloud guide](nextcloud-installation.md) supplies endpoint and recovery
-details. Live cloud authentication still needs this owner-supplied setup.
+Accept image installation, paste the private folder link, and enter the hidden
+password. Require `Installation verified`; rerun the same command/path to test
+safe repeat behavior. The printed browser command opens the installed catalog.
+There is no Git working tree in this snapshot, so `git status` is not an install
+gate. The [Nextcloud guide](nextcloud-installation.md) covers recovery and limits.
 
 ## Manual step C: tag and publish the field-test download
 
@@ -127,11 +125,20 @@ git tag -a iip-r000001-public-v1 -m "Public catalog field test"
 git push origin iip-r000001-public-v1
 ```
 
-Create a GitHub prerelease using that tag. Attach
+The prior handoff recommended attaching
 `work/public-distribution-v1/IndexedIconPack-iip-r000001-no-icons-public-v1.zip`
-and the adjacent `SHA256SUMS.txt`. This revised wrapper includes the license,
-rights notice, example config and observation export. The earlier no-icon ZIP
-is preserved as historical output, not the recommended public attachment.
+and its adjacent `SHA256SUMS.txt` to a GitHub prerelease.
+
+> **Status: Outdated** (2026-10-14)
+> Prefer the guided repository installer for new consumers. A prerelease can
+> document that entry point without attaching a standalone ZIP.
+
+The existing standalone attachment predates guided configuration and the modern
+Nextcloud authentication correction. It remains a historical fallback, not the
+recommended new consumer path. To publish updated standalone bytes, use the
+allowlisted ZIP builder with a new filename and checksum; do not replace a
+previously published artifact in place. The guided installer uses the repository
+snapshot and does not need a GitHub Release attachment.
 
 Do not attach image ZIPs, private configuration or a general ZIP of a hydrated
 checkout. The explicit ZIP builder excludes those files. Deliver actual
@@ -150,6 +157,10 @@ ignored images from one version should not be mistaken for another. Verify the
 matching images and release/profile pins before activation. A Git tag,
 catalog release ID, logical revision and deployment's active pointer are
 different identities. Preserve the [deployment contract](../architecture/stack-and-contracts.md).
+
+The installer records one exact source commit and never advances an existing
+destination to a newer snapshot. Use a new destination for updates. Choosing
+arbitrary tagged installer snapshots is not implemented by its single-path CLI.
 
 ## See Also
 

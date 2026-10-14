@@ -249,6 +249,45 @@ class DistributionTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "manifest hash mismatch"):
             downloader.load_plan(self.root)
 
+    def test_guided_share_setup_and_modern_authentication(self):
+        config = self.root / "nextcloud.json"
+        for url in ("https://cloud.example/nextcloud/s/TOKEN",
+                    "https://cloud.example/nextcloud/index.php/s/TOKEN/",
+                    "https://cloud.example/nextcloud/public.php/dav/files/TOKEN/"):
+            with self.subTest(url=url):
+                value = downloader.share_config(url)
+                self.assertEqual(value["webdav_base_url"], "https://cloud.example/nextcloud/public.php/dav/files/TOKEN/")
+                config.write_text(json.dumps(value))
+                with patch.dict(os.environ, {"IIP_NEXTCLOUD_PASSWORD": "private password"}):
+                    _, auth = downloader.credentials(config)
+                self.assertEqual(base64.b64decode(auth[6:]), b"anonymous:private password")
+        value = downloader.share_config("https://cloud.example/nextcloud/public.php/webdav/", "TOKEN")
+        config.write_text(json.dumps(value))
+        with patch.dict(os.environ, {"IIP_NEXTCLOUD_PASSWORD": "private password"}):
+            _, auth = downloader.credentials(config)
+        self.assertEqual(base64.b64decode(auth[6:]), b"TOKEN:private password")
+        for url in ("http://cloud.example/s/TOKEN", "https://user:secret@cloud.example/s/TOKEN",
+                    "https://cloud.example/s/TOKEN?password=secret", "https://cloud.example/s/TOKEN#fragment",
+                    "https://cloud.example/remote.php/dav/files/user", "https://cloud.example/s/TOKEN\n"):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                downloader.share_config(url)
+        config.unlink()
+        with patch.object(sys.stdin, "isatty", return_value=True), \
+                patch("builtins.input", side_effect=["bad url", "https://cloud.example/s/TOKEN"]), \
+                patch.dict(os.environ, {"IIP_NEXTCLOUD_PASSWORD": "private password"}):
+            downloader.credentials(config)
+        self.assertEqual(json.loads(config.read_text())["share_token"], "TOKEN")
+        self.assertNotIn("private password", config.read_text())
+        before = config.read_bytes()
+        with patch.object(sys.stdin, "isatty", return_value=True), patch("builtins.input", return_value="n"):
+            downloader.configure(config)
+        self.assertEqual(config.read_bytes(), before)
+
+    def test_published_downloader_is_the_same_code(self):
+        source = Path(__file__).resolve().parents[1]
+        self.assertEqual((source / "tools/download_icons.py").read_text(),
+                         (source / "catalog/download_icons.py").read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

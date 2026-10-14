@@ -20,6 +20,9 @@ nextcloud.json
 
 # Download state and local logs
 .download.lock
+.installer.lock
+.imageindexer-install.json
+.nextcloud-*
 *.part
 *.log
 

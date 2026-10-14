@@ -2,3 +2,4 @@
 catalog/release/** -text -filter
 catalog/distribution.json -text -filter
 catalog/observations.jsonl text eol=lf
+*.sh text eol=lf

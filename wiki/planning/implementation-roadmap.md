@@ -1,8 +1,8 @@
 # Implementation and public-release roadmap
 
-> Sources: Initial readiness, 2026-10-11; owner public-data directions and public catalog proof, 2026-10-12; earlier distribution proposal, 2026-10-11
-> Raw: [Initial readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md)
-> Updated: 2026-10-12
+> Sources: Initial readiness, 2026-10-11; owner public-data directions and public catalog proof, 2026-10-12; earlier distribution proposal, 2026-10-11; guided installer direction and proof, 2026-10-14
+> Raw: [Initial readiness](../../raw/quality/2026-10-11-initial-release-readiness.md); [Owner decision](../../raw/planning/2026-10-12-public-data-directions.md); [Public catalog proof](../../raw/delivery/2026-10-12-public-catalog-proof.md); [Earlier proposal](../../raw/planning/2026-10-11-distribution-and-ingestion-proposal.md); [Clone image-restore proof](../../raw/delivery/2026-10-12-private-image-restore-proof.md); [Guided installer proof](../../raw/delivery/2026-10-14-guided-installer-proof.md)
+> Updated: 2026-10-14
 
 ## Completed baseline
 
@@ -19,6 +19,10 @@
 - Automated suite: 53 passing tests in the workbench and isolated Git clone.
 - Clone hydration from existing private ZIPs, deep and repeat verification,
   exact-image copying, and clean Git status after installation.
+- Guided single-path Bash installer, automatic private configuration and
+  modern/legacy Nextcloud authentication; current suite passes 61 tests.
+- Initial repository published by the owner; live GitHub source bootstrap and
+  Windows Git Bash pipeline/resume checks pass without installing private images.
 
 The prior plan called for a source-only export and a separate data download.
 
@@ -26,15 +30,22 @@ The prior plan called for a source-only export and a separate data download.
 > The owner requires generated data in the clone. Public catalog preparation is
 > complete locally; remote upload and actual cloud installation remain open.
 
-## Next: owner publication and actual cloud proof
+The earlier follow-up required a fresh clone and manual JSON copying.
+
+> **Status: Outdated** (2026-10-14)
+> The owner prepared GitHub and Nextcloud and requested a guided installer.
+> Publish that update, then use its prompts. Cloning remains a developer option.
+
+## Next: publish the installer and prove actual cloud access
 
 Follow the exact [manual release steps](../delivery/distribution-and-repository.md):
-commit/push the checked public files, upload the unchanged private image archives,
-then configure and test a fresh clone through the actual Nextcloud share.
+commit/push the checked installer changes, then run the one-command installer
+into a new directory using the actual Nextcloud share. No image archive rebuild
+or repeat upload is needed if the prepared folder contains the unchanged ZIPs.
 
-**Acceptance:** clone-only search works without credentials; private-image
+**Acceptance:** source-snapshot search works without credentials; private-image
 installation passes deep verification; repeated installation is safe; restored
-images/configuration remain untracked. Failed credentials, corruption and
+images/configuration stay private. Failed credentials, corruption and
 resume behavior have local automated coverage, not yet real-server proof.
 
 No annotation or database rebuild is needed. No independent manual reviewer is

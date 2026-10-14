@@ -49,3 +49,19 @@
 - Preservation: Original SQLite, release manifest and historical no-icon ZIP hashes remain unchanged. The new public ZIP has its own filename and checksum.
 - Publication guard: The source-and-data candidate inventory passes; the database stays below the ordinary-Git size ceiling. This remains a bounded guard, not a complete secrecy or rights audit.
 
+## [2026-10-14] ingest | Guided single-command installation
+
+- Disposition: Update
+- Raw: raw/delivery/2026-10-14-guided-installer-proof.md
+- Updated: Nextcloud installation; Distribution and repository; Implementation roadmap; Release evidence.
+- Lineage: The former fresh-clone/manual-config consumer flow is marked Outdated. Initial GitHub publication is now observed, while live private Nextcloud authentication remains unproven.
+- Scope: Added the standalone Bash bootstrap, interactive shared downloader setup, modern/legacy authentication handling, tests, LF shell attributes and private installer-state ignores. Updated the landing page and wrapper guide. Original release/DB/image ZIP bytes and historical raw snapshots remain unchanged.
+- Verification: 61 automated tests passed; live GitHub bootstrap, Windows Git Bash prompts, piped local entry point and snapshot resume passed with private images declined. No native Linux/macOS/WSL or private-server test was performed.
+- Authority: No project staging, commit, push, tag, cloud upload, model call or corpus rebuild. The owner must publish these changes before the raw-GitHub installer URL is available.
+
+## [2026-10-14] lint | 0 confirmed issues, 0 auto-fixed
+
+- Structure: 102 local links checked; all 8 article dates match the index.
+- Evidence: 0 evidence errors and 0 unreferenced raw files. The existing 16443 fidelity candidate was confirmed in the linked restore JSON; the checker excludes fenced source blocks.
+- Verification: Final automated suite passes 61 tests; publication guard, Bash syntax and Git whitespace checks pass. Existing raw sources and immutable catalog payloads were not rewritten.
+
